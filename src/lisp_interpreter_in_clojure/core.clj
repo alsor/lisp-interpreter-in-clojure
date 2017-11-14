@@ -14,6 +14,11 @@
 (defn definition? [exp]
   (tagged-list? exp 'define))
 
+(defn eval-definition [exp env]
+  (let [symbol (second exp)
+        value (my-eval (nth exp 2) env)]
+    (swap! env assoc symbol value)))
+
 (defn do? [exp]
   (tagged-list? exp 'do))
 
@@ -28,6 +33,10 @@
 (defn my-eval [exp env]
   (cond
     (self-evaluating? exp) exp
-    (variable? exp) (env exp)
+    (variable? exp) ((deref env) exp)
     (do? exp) (eval-do (rest exp) env)
+    (definition? exp) (eval-definition exp env)
     :else "syntax error"))
+
+(defn lisp [exp]
+  (my-eval exp (atom {})))
